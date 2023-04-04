@@ -1,0 +1,2 @@
+as -g -o lab18.o lab18.s
+ld -o lab18 lab18.o
