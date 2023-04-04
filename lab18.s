@@ -12,6 +12,7 @@ str4:  .asciz  "\n"
 str5:  .asciz "The sun did not shine.\n"
 headPtr:  .quad  0
 tailPtr:  .quad  0
+tempPtr1:    .quad 0
 
 // 1) malloc/copy the static string (one at time).
     // a) Get the length of the string (+1 to account for the null at the end)
@@ -28,4 +29,22 @@ tailPtr:  .quad  0
     .text
 
 _start:
-    
+// Get String length + 1
+    MOV X0, #20     // 19 + 1 = 20 bytes for strlen
+    BL  malloc      // X0 points to dynamically allocated mem
+// Store that away to tempPtr    
+    LDR X1,=tempPtr // *X1 = tempPtr
+    STR X0, [X1]    // Store the dynamically allocated mem to tempPtr
+    LDR X1,=tempPtr // *X1 = tempPtr
+    LDR X2,=str1    // *X2 = str1
+    LDR X2, [X2]    // X2 = str1
+    STR X2, [X1]    // Store str1 to dynamic memory
+// Dynamically allocate for headPtr & tailPtr
+    MOV X0, #16         // Allocate 16 bytes for head and tail ptrs
+    BL  malloc          // That dynamic mem is pointed to by X0
+    LDR X1,=headPtr     // *X1 = headPtr
+    LDR X2,=tailPtr     // *X2 = tailPtr
+    STR X0, [X1]        // Store 8 bytes to head
+    STR X0, [X2, #8]    // Store the next 8 bytes to tail
+// Make headPtr point to 1st node, tail to null
+    LDR X3,=tempPtr     // 
