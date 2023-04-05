@@ -30,22 +30,45 @@ currentNode:    .quad   0   // Used to traverse linked list
     .text
 
 _start:
-// Get String length + 1
-    MOV X0, #20     // 19 + 1 = 20 bytes for strlen
-    BL  malloc      // X0 points to dynamically allocated mem
-// Store that away to tempPtr    
-    LDR X1,=newNodePtr // *X1 = tempPtr
-    STR X0, [X1]    // Store the dynamically allocated mem to tempPtr
-    LDR X1,=newNodePtr // *X1 = tempPtr
-    LDR X2,=str1    // *X2 = str1
-    LDR X2, [X2]    // X2 = str1
-    STR X2, [X1]    // Store str1 to dynamic memory
-// Dynamically allocate for headPtr & tailPtr
-    MOV X0, #16         // Allocate 16 bytes for head and tail ptrs
-    BL  malloc          // That dynamic mem is pointed to by X0
-    LDR X1,=newNodePtr     // *X1 = headPtr
-    LDR X2,=tailPtr     // *X2 = tailPtr
-    STR X0, [X1]        // Store 8 bytes to head
-    STR X0, [X2, #8]    // Store the next 8 bytes to tail
-// Make headPtr point to 1st node, tail to null
-    LDR X3,=tempPtr     // 
+// Use String_copy to get a malloc'd address of a copy of our string
+    LDR X0,=str1            // load the string to X0
+    BL  String_copy         // X0 points to a malloc's string's address
+    MOV X19, X0             // Copy the address of our new string to X19
+
+// Dynamically allocate for our new node
+    MOV X0, #16         // Allocate 16 bytes for new string and tail
+    BL  malloc          // That dynamic mem is pointed to by X0 (newNode = new Node)
+    LDR X20,=newNodePtr // Load label of newNodePtr to X20
+    STR X0, [X20]       // Save the address of newNode to address of newNodePtr
+    STR X19, [X0]       // Store new string from str_cpy
+    MOV X19, #0         // Move NULL into X19
+    STR X19, [X0, #8]   // Store the null into next field of our struct/node
+    // first 8 bytes of node contain the string, second 8 bytes are tail (NULL for now)
+
+// Head needs to point to the first element in list
+    LDR X1,=headPtr     // *X1 = headPtr, a pointer to a pointer to a string
+    STR X0, [X1]        // head = node1
+
+// Get node2
+// Use String_copy to get a malloc'd address of a copy of our string
+    LDR X0,=str2        // Load the string to X0
+    BL  String_copy     // X0 points to a malloc's string's address
+    MOV X19, X0         // Copy that address to X19
+// Dynamically allocate for the node
+    MOV X0, #16         // Allocate 16 bytes for new string and tail
+    BL  malloc          // Dynamic mem is pointed to by X0
+    STR X19, [X0]       // Store new string to new node
+    LDR X20,=newNodePtr // Load label newNodePtr to X20, which points to node1
+    LDR X20, [X20]      // Dereference to get the address of newNode
+    STR X0, [X20, #8]   // Dereference to get the newNode, with 8 byte offset to get tail
+                        // Store address of node2 to node1.tail
+
+
+
+
+
+// Call kernel to end program
+	MOV	X0, #0				// Return code 0 (iosetup)
+	MOV	X8, #93				// Service command 93 (exit)
+	SVC	0					// Service code 0 (iosetup)
+	.end					// End of program
